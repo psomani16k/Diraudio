@@ -26,9 +26,7 @@ pub(crate) async fn handle_conversion(
     conversion_details: ConversionInstructions,
     app_state: Arc<Mutex<AppState>>,
 ) {
-    // 1. Traverse the source directory and make a list of all the files
-    // 2. Spawn threads with access to this list of files
-
+    // Traverse the source directory and make a list of all the files
     // Get all the files in the source directory
     let mut files: Vec<String> = Vec::new();
     let src_path = conversion_details.src_path.clone();
@@ -43,24 +41,24 @@ pub(crate) async fn handle_conversion(
         let app_state_clone = Arc::clone(&app_state);
 
         let handle = tokio::task::spawn_blocking(move || {
-            let rt = tokio::runtime::Runtime::new().unwrap();
-            rt.block_on(process_files_till_empty(
-                conversion_details_clone,
-                i,
-                files_clone,
-                app_state_clone,
-            ));
+            debug_print!("Spawning thread {}", i);
+            tokio::runtime::Handle::current().block_on(async {
+                process_files_till_empty(conversion_details_clone, i, files_clone, app_state_clone)
+                    .await
+            });
         });
 
         handles.push(handle);
     }
 
     for handle in handles {
-        handle.await.unwrap();
+        if let Err(e) = handle.await {
+            debug_print!("Error in thread: {:?}", e);
+        }
     }
 }
 
-fn traverse_directory<'a>(
+fn traverse_directory(
     src: &String,
     list_of_files: &mut Vec<String>,
     src_path_length: usize,
@@ -73,7 +71,7 @@ fn traverse_directory<'a>(
             traverse_directory(
                 &entry.path().to_str().unwrap().to_owned(),
                 list_of_files,
-                src_path_length.clone(),
+                src_path_length,
             );
         } else if metadata.is_file() {
             let path = entry.path();
@@ -82,7 +80,10 @@ fn traverse_directory<'a>(
             list_of_files.push(path);
         }
     }
-    return list_of_files.to_vec();
+    // for i in list_of_files.clone() {
+    //     println!("{}", i)
+    // }
+    list_of_files.clone()
 }
 
 async fn process_files_till_empty(
@@ -100,23 +101,24 @@ async fn process_files_till_empty(
         }
         let path_option = {
             let mut list_of_files = files.lock().await;
-            let path = (*list_of_files).pop();
-            path
+            list_of_files.pop()
         };
         match path_option {
-            Some(path) => handle_file(&instruction, path, thread_no),
-            None => {
-                return;
+            Some(path) => {
+                debug_print!("thread {} handling {}", thread_no, path);
+                handle_file(&instruction, path, thread_no);
             }
+            None => return,
         }
     }
 }
 
 fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: i32) {
     match decide_file_action(&file_path) {
-        // if file isnt of a supported audio format then it will be copied
+        // If the file isn't of a supported audio format then it will be copied
         FileAction::Copy => {
             if !instruction.copy_unrecognised_files {
+                // debug_print!("thread {} did not copy file {}", thread, file_path);
                 return;
             }
             debug_print!(
@@ -125,15 +127,22 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                 instruction.dest_path,
                 file_path
             );
-            match std::fs::copy(
-                instruction.src_path.clone() + &file_path,
-                instruction.dest_path.clone() + &file_path,
-            ) {
+            let target_path = instruction.dest_path.clone() + &file_path;
+
+            let directory_path = get_target_directory(instruction.dest_path.clone(), &file_path);
+            fs::create_dir_all(directory_path).unwrap();
+            match std::fs::copy(instruction.src_path.clone() + &file_path, target_path) {
                 Ok(_) => {
+                    debug_print!(
+                        "Copied {} to {}{}",
+                        file_path,
+                        instruction.dest_path,
+                        file_path
+                    );
                     ProgressUpdate {
                         handling_thread: thread,
                         msg: format!(
-                            "Copying {} to {}{}",
+                            "Copied {} to {}{}",
                             file_path, instruction.dest_path, file_path
                         ),
                         message_type: MessageType::Success.into(),
@@ -141,10 +150,16 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                     .send_signal_to_dart();
                 }
                 Err(_) => {
+                    debug_print!(
+                        "Failed to copy {} to {}{}",
+                        file_path,
+                        instruction.dest_path,
+                        file_path
+                    );
                     ProgressUpdate {
                         handling_thread: thread,
                         msg: format!(
-                            "Failed to copying {} to {}{}",
+                            "Failed to copy {} to {}{}",
                             file_path, instruction.dest_path, file_path
                         ),
                         message_type: MessageType::Fail.into(),
@@ -158,6 +173,10 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
             let raw_audio = match RawAudioData::new_from_path(Path::new(&src_file_path)) {
                 Ok(data) => data,
                 Err(_) => {
+                    debug_print!(
+                        "Failed to decode file at {}. Skipping this file.",
+                        file_path
+                    );
                     ProgressUpdate {
                         handling_thread: thread,
                         message_type: MessageType::Fail.into(),
@@ -180,7 +199,15 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                     let write_path = instruction.dest_path.clone() + &file_path;
                     let write_path = Path::new(&write_path);
                     let write_path = write_path.with_extension("mp3");
+                    let directory_path =
+                        get_target_directory(instruction.dest_path.clone(), &file_path);
+                    fs::create_dir_all(directory_path).unwrap();
                     fs::write(&write_path, output_audio).unwrap();
+                    debug_print!(
+                        "Converted {} to {}",
+                        file_path,
+                        write_path.as_path().to_string_lossy()
+                    );
                     ProgressUpdate {
                         handling_thread: thread,
                         message_type: MessageType::Success.into(),
@@ -191,9 +218,12 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                         ),
                     }
                     .send_signal_to_dart();
-                    return;
                 }
                 Err(_) => {
+                    debug_print!(
+                        "Failed to encode file at {}. Skipping this file.",
+                        file_path
+                    );
                     ProgressUpdate {
                         handling_thread: thread,
                         message_type: MessageType::Fail.into(),
@@ -203,7 +233,6 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                         ),
                     }
                     .send_signal_to_dart();
-                    return;
                 }
             }
         }
@@ -214,7 +243,14 @@ fn decide_file_action(file_path: &String) -> FileAction {
     if file_path.ends_with(".flac") {
         return FileAction::Convert;
     }
-    return FileAction::Copy;
+    FileAction::Copy
+}
+
+fn get_target_directory(dest_path: String, file_path: &String) -> String {
+    let target_path = dest_path + &file_path;
+    let target_path = Path::new(&target_path);
+    let directory_path = target_path.parent().unwrap().to_str().unwrap().to_string();
+    return directory_path;
 }
 
 enum FileAction {

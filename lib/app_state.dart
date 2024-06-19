@@ -10,11 +10,13 @@ class AppState {
       Mp3Config(bitrate: Mp3Bitrate.Kbps320, quality: Mp3Quality.Best);
   int _noOfThreads = Platform.numberOfProcessors;
   bool _copyUnrecognisedFiles = true;
-  String? _srcPath;
-  String? _destPath;
+  String _srcPath =
+      "C:\\Users\\Parth Somani\\Desktop\\GitHub\\Diraudio\\test_files";
+  String _destPath =
+      "C:\\Users\\Parth Somani\\Desktop\\GitHub\\Diraudio\\test_files_output";
 
   // singleton class features
-  static AppState _instance = AppState._();
+  static final AppState _instance = AppState._();
   AppState._();
 
   /// Returns singleton instance of the [AppState] class
@@ -52,7 +54,7 @@ class AppState {
   ///
   /// Returns the selected path or null if no path was selected
   Future<String?> setSourcePathViaOS() async {
-    _srcPath = await FilePicker.platform.getDirectoryPath();
+    _srcPath = await FilePicker.platform.getDirectoryPath() ?? "";
     return _srcPath;
   }
 
@@ -60,7 +62,7 @@ class AppState {
   ///
   /// Returns the selected path or null if no path was selected
   Future<String?> setDestinationPathViaOS() async {
-    _destPath = await FilePicker.platform.getDirectoryPath();
+    _destPath = await FilePicker.platform.getDirectoryPath() ?? "";
     return _destPath;
   }
 
@@ -116,11 +118,11 @@ class AppState {
 
   // methods
   Future<bool> startConversion(TargetFormat targetFormat) async {
-    if (_srcPath == null) {
+    if (_srcPath.isEmpty) {
       throw const FormatException("Source path not set.");
     } else if (!await Directory(_srcPath!).exists()) {
       throw const FormatException("Source path is invalid.");
-    } else if (_destPath == null) {
+    } else if (_destPath.isEmpty) {
       throw const FormatException("Destination path not set.");
     } else if (!await Directory(_destPath!).exists()) {
       throw const FormatException("Destination path is invalid.");
@@ -131,7 +133,7 @@ class AppState {
       srcPath: _srcPath,
       mp3Config: _mp3config,
       targetFormat: targetFormat,
-      noOfThreads: _noOfThreads,
+      noOfThreads: 2,
     ).sendSignalToRust();
     return true;
   }

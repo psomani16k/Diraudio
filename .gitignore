@@ -49,6 +49,8 @@ target/
 
 # Local Testing related
 /test_files
+/test_files_output
+
 
 # Generated messages
 */**/messages/

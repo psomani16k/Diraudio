@@ -24,6 +24,12 @@ class _MyAppState extends State<MyApp> {
   TextEditingController _destinationController = TextEditingController();
   final AppState _stateInstance = AppState.getInstance();
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   int _noOfThreads = 1;
   final int _availableNoOfThreads = Platform.numberOfProcessors;
 

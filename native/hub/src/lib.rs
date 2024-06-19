@@ -7,7 +7,6 @@ mod conversion_handler;
 mod encoder_decoder;
 use conversion_handler::{handle_conversion, ConversionInstructions};
 
-use messages::rust_signal::MessageType;
 use rinf::debug_print;
 use std::sync::Arc;
 use tokio::{self, sync::Mutex};
@@ -53,6 +52,9 @@ async fn dart_listen_start(app_state: Arc<Mutex<AppState>>) {
         }
         drop(state);
         let message = dart_signal.message.clone();
+        debug_print!("{}", message.src_path);
+        debug_print!("{}", message.dest_path);
+        debug_print!("{}", message.copy_unrecognised_files);
         let instruction = ConversionInstructions {
             copy_unrecognised_files: message.copy_unrecognised_files,
             src_path: message.src_path.clone(),
@@ -66,6 +68,14 @@ async fn dart_listen_start(app_state: Arc<Mutex<AppState>>) {
         };
         let transfered_app_state = Arc::clone(&app_state);
 
-        tokio::spawn(handle_conversion(instruction, transfered_app_state));
+        tokio::spawn(async {
+            debug_print!("Starting handle_conversion");
+            handle_conversion(instruction, transfered_app_state).await;
+            debug_print!("Finished handle_conversion");
+        });
     }
+}
+
+fn prin() {
+    debug_print!("jaskdf");
 }

@@ -51,10 +51,7 @@ pub mod mp3 {
             for tag in tags_iter {
                 let key = match tag.std_key {
                     Some(key) => key,
-                    None => {
-                        println!("{}", tag.key);
-                        symphonia::core::meta::StandardTagKey::Comment
-                    }
+                    None => symphonia::core::meta::StandardTagKey::Comment,
                 };
                 tags_map.insert(key, tag.value.clone());
             }
