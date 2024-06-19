@@ -1,23 +1,14 @@
-# audio_library_convertor
+# Diraudio
 
-A new Flutter project.
+A Flutter + Rust project to batch convert the file format of a library of audio files.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+This project is a starting point for a Flutter application with Rust integration using [rinf](https://github.com/cunarist/rinf)
 
 ## Using Rust Inside Flutter
 
-This project leverages Flutter for GUI and Rust for the backend logic,
+This project leverages Flutter for GUI and Rust for the actual processing of the files,
 utilizing the capabilities of the
 [Rinf](https://pub.dev/packages/rinf) framework.
 
@@ -56,5 +47,3 @@ flutter run
 
 For detailed instructions on writing Rust and Flutter together,
 please refer to Rinf's [documentation](https://rinf.cunarist.com).
-
-
