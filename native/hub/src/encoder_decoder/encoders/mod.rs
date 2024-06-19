@@ -1,1 +1,1 @@
-pub mod mp3;
+pub mod mp3_encoder;
