@@ -22,7 +22,7 @@ enum MessageType{
   
 // [RINF:RUST-SIGNAL]
 message Finish{
-    int32 finisgedThread = 1;
+    int32 finishedThread = 1;
 }
   
   
