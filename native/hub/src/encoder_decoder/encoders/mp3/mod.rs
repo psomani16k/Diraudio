@@ -10,13 +10,13 @@ pub mod mp3 {
         messages::dart_signal::{Mp3Bitrate, Mp3Quality},
     };
 
-    use super::{get_proper_bitrate, get_proper_quality};
+    use super::{get_correct_bitrate, get_correct_quality};
 
     pub trait Mp3Encoder {
         fn encode_to_mp3(
             &self,
             quality: Mp3Quality,
-            bit_rate: Mp3Bitrate,
+            bitrate: Mp3Bitrate,
         ) -> Result<Vec<u8>, String>;
     }
 
@@ -24,18 +24,16 @@ pub mod mp3 {
         fn encode_to_mp3(
             &self,
             quality: Mp3Quality,
-            bit_rate: Mp3Bitrate,
+            bitrate: Mp3Bitrate,
         ) -> Result<Vec<u8>, String> {
             // TODO
             // 1. find a way to set the album art in the output mp3 file                                        -- done
             // 2. manage and map the channels in the raw audio data to the mp3 file                             -- actually done now, managing 1 or 2 channels
             // 3. try and make options to add more tags which are not atcually exposed by mp3lame_encoder
 
-            // getting the right quality enum
-            let quality = get_proper_quality(quality);
-            let bit_rate = get_proper_bitrate(bit_rate);
-
             // readying the encoder
+            let quality = get_correct_quality(quality);
+            let bitrate = get_correct_bitrate(bitrate);
 
             let mut mp3_encoder = Builder::new().expect("Create LAME builder");
             mp3_encoder
@@ -44,14 +42,17 @@ pub mod mp3 {
             mp3_encoder
                 .set_sample_rate(self.get_sample_rate())
                 .expect("Setting sample rate");
-            mp3_encoder.set_brate(bit_rate).expect("Setting bit_rate");
+            mp3_encoder.set_brate(bitrate).expect("Setting bitrate");
             mp3_encoder.set_quality(quality).expect("Setting quality");
             let tags_iter = self.get_tags().iter();
             let mut tags_map = HashMap::new();
             for tag in tags_iter {
                 let key = match tag.std_key {
                     Some(key) => key,
-                    None => symphonia::core::meta::StandardTagKey::Comment,
+                    None => {
+                        // println!("{}", tag.key);
+                        symphonia::core::meta::StandardTagKey::Comment
+                    }
                 };
                 tags_map.insert(key, tag.value.clone());
             }
@@ -96,10 +97,13 @@ pub mod mp3 {
                 },
             }) {
                 Ok(_) => (),
-                Err(_) => return Err("error in setting id3 tags".to_owned()),
+                Err(err) => return Err(format!("{:?}", err)),
             };
 
-            let mp3_encoder = mp3_encoder.build().expect("Failed to build mp3 encoder.");
+            let mp3_encoder = match mp3_encoder.build() {
+                Ok(encoder) => encoder,
+                Err(err) => return Err(err.to_string()),
+            };
 
             // encoding the input data
 
@@ -139,20 +143,29 @@ pub mod mp3 {
 
         let input = DualPcm { left, right };
         let len = input.left.len();
+        // On setting the maximum image size to 16MB the
+        // encoder was sometime throwing error that the output
+        // buffer is not big enough for the encoded
+        // data, this solved the problem.
+        let len = len + (16 * 1024 * 1024);
 
         let mut mp3_out_buffer = Vec::new();
         mp3_out_buffer.reserve(mp3lame_encoder::max_required_buffer_size(len));
-        let encoded_size = mp3_encoder
-            .encode(input, mp3_out_buffer.spare_capacity_mut())
-            .expect("To encode");
+        let encoded_size = match mp3_encoder.encode(input, mp3_out_buffer.spare_capacity_mut()) {
+            Ok(size) => size,
+
+            Err(err) => return Err(err.to_string()),
+        };
 
         unsafe {
             mp3_out_buffer.set_len(mp3_out_buffer.len().wrapping_add(encoded_size));
         }
 
-        let encoded_size = mp3_encoder
-            .flush::<FlushNoGap>(mp3_out_buffer.spare_capacity_mut())
-            .expect("to flush");
+        let encoded_size =
+            match mp3_encoder.flush::<FlushNoGap>(mp3_out_buffer.spare_capacity_mut()) {
+                Ok(size) => size,
+                Err(err) => return Err(err.to_string()),
+            };
 
         unsafe {
             mp3_out_buffer.set_len(mp3_out_buffer.len().wrapping_add(encoded_size));
@@ -174,17 +187,20 @@ pub mod mp3 {
 
         let mut mp3_out_buffer = Vec::new();
         mp3_out_buffer.reserve(mp3lame_encoder::max_required_buffer_size(len));
-        let encoded_size = mp3_encoder
-            .encode(input, mp3_out_buffer.spare_capacity_mut())
-            .expect("To encode");
+        let encoded_size = match mp3_encoder.encode(input, mp3_out_buffer.spare_capacity_mut()) {
+            Ok(size) => size,
+            Err(err) => return Err(err.to_string()),
+        };
 
         unsafe {
             mp3_out_buffer.set_len(mp3_out_buffer.len().wrapping_add(encoded_size));
         }
 
-        let encoded_size = mp3_encoder
-            .flush::<FlushNoGap>(mp3_out_buffer.spare_capacity_mut())
-            .expect("to flush");
+        let encoded_size =
+            match mp3_encoder.flush::<FlushNoGap>(mp3_out_buffer.spare_capacity_mut()) {
+                Ok(size) => size,
+                Err(err) => return Err(err.to_string()),
+            };
 
         unsafe {
             mp3_out_buffer.set_len(mp3_out_buffer.len().wrapping_add(encoded_size));
@@ -194,7 +210,7 @@ pub mod mp3 {
     }
 }
 
-fn get_proper_quality(quality: Mp3Quality) -> mp3lame_encoder::Quality {
+fn get_correct_quality(quality: Mp3Quality) -> mp3lame_encoder::Quality {
     match quality {
         Mp3Quality::Best => mp3lame_encoder::Quality::Best,
         Mp3Quality::SecondBest => mp3lame_encoder::Quality::SecondBest,
@@ -209,24 +225,24 @@ fn get_proper_quality(quality: Mp3Quality) -> mp3lame_encoder::Quality {
     }
 }
 
-fn get_proper_bitrate(bitrate: Mp3Bitrate) -> mp3lame_encoder::Birtate {
+fn get_correct_bitrate(bitrate: Mp3Bitrate) -> mp3lame_encoder::Bitrate {
     match bitrate {
-        Mp3Bitrate::BitrateUnknownDoNotUse => mp3lame_encoder::Birtate::Kbps320,
-        Mp3Bitrate::Kbps8 => mp3lame_encoder::Birtate::Kbps8,
-        Mp3Bitrate::Kbps16 => mp3lame_encoder::Birtate::Kbps16,
-        Mp3Bitrate::Kbps24 => mp3lame_encoder::Birtate::Kbps24,
-        Mp3Bitrate::Kbps32 => mp3lame_encoder::Birtate::Kbps32,
-        Mp3Bitrate::Kbps40 => mp3lame_encoder::Birtate::Kbps40,
-        Mp3Bitrate::Kbps48 => mp3lame_encoder::Birtate::Kbps48,
-        Mp3Bitrate::Kbps64 => mp3lame_encoder::Birtate::Kbps64,
-        Mp3Bitrate::Kbps80 => mp3lame_encoder::Birtate::Kbps80,
-        Mp3Bitrate::Kbps96 => mp3lame_encoder::Birtate::Kbps96,
-        Mp3Bitrate::Kbps112 => mp3lame_encoder::Birtate::Kbps112,
-        Mp3Bitrate::Kbps128 => mp3lame_encoder::Birtate::Kbps128,
-        Mp3Bitrate::Kbps160 => mp3lame_encoder::Birtate::Kbps160,
-        Mp3Bitrate::Kbps192 => mp3lame_encoder::Birtate::Kbps192,
-        Mp3Bitrate::Kbps224 => mp3lame_encoder::Birtate::Kbps224,
-        Mp3Bitrate::Kbps256 => mp3lame_encoder::Birtate::Kbps256,
-        Mp3Bitrate::Kbps320 => mp3lame_encoder::Birtate::Kbps320,
+        Mp3Bitrate::BitrateUnknownDoNotUse => mp3lame_encoder::Bitrate::Kbps320,
+        Mp3Bitrate::Kbps8 => mp3lame_encoder::Bitrate::Kbps8,
+        Mp3Bitrate::Kbps16 => mp3lame_encoder::Bitrate::Kbps16,
+        Mp3Bitrate::Kbps24 => mp3lame_encoder::Bitrate::Kbps24,
+        Mp3Bitrate::Kbps32 => mp3lame_encoder::Bitrate::Kbps32,
+        Mp3Bitrate::Kbps40 => mp3lame_encoder::Bitrate::Kbps40,
+        Mp3Bitrate::Kbps48 => mp3lame_encoder::Bitrate::Kbps48,
+        Mp3Bitrate::Kbps64 => mp3lame_encoder::Bitrate::Kbps64,
+        Mp3Bitrate::Kbps80 => mp3lame_encoder::Bitrate::Kbps80,
+        Mp3Bitrate::Kbps96 => mp3lame_encoder::Bitrate::Kbps96,
+        Mp3Bitrate::Kbps112 => mp3lame_encoder::Bitrate::Kbps112,
+        Mp3Bitrate::Kbps128 => mp3lame_encoder::Bitrate::Kbps128,
+        Mp3Bitrate::Kbps160 => mp3lame_encoder::Bitrate::Kbps160,
+        Mp3Bitrate::Kbps192 => mp3lame_encoder::Bitrate::Kbps192,
+        Mp3Bitrate::Kbps224 => mp3lame_encoder::Bitrate::Kbps224,
+        Mp3Bitrate::Kbps256 => mp3lame_encoder::Bitrate::Kbps256,
+        Mp3Bitrate::Kbps320 => mp3lame_encoder::Bitrate::Kbps320,
     }
 }

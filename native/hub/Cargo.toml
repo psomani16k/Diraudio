@@ -12,10 +12,10 @@ edition = "2021"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
+mp3lame-encoder = { path = "src\\encoder_decoder\\encoders\\mp3\\mp3lame-encoder-master" }
 rinf = "6.12.1"
 symphonia = "0.5.4"
 prost = "0.12.6"
-mp3lame-encoder = "0.2.0"
 tokio = { version = "1", features = ["sync"] }
 # wasm-bindgen = "0.2.92" # Uncomment this line to target the web
 # tokio_with_wasm = "0.4.4" # Uncomment this line to target the web

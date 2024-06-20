@@ -437,18 +437,15 @@ dependencies = [
 [[package]]
 name = "mp3lame-encoder"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "290fd44f3de10efaeac471fa8436a959ea4d8bb15b4eadd0cf1e77ab4cff6cc9"
 dependencies = [
  "libc",
  "mp3lame-sys",
+ "symphonia",
 ]
 
 [[package]]
 name = "mp3lame-sys"
 version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99896fd43ed58e957c164c5f4a1e7d8e770f358835cc6920b2eab7ab6d1a7106"
 dependencies = [
  "autotools",
  "cc",

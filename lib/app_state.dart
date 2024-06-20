@@ -133,7 +133,7 @@ class AppState {
       srcPath: _srcPath,
       mp3Config: _mp3config,
       targetFormat: targetFormat,
-      noOfThreads: 2,
+      noOfThreads: 16,
     ).sendSignalToRust();
     return true;
   }

@@ -1,0 +1,24 @@
+{
+   symphonia_bad_static1
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   ...
+   fun:*hashbrown3map28HashMap*insert*
+   ...
+   fun:*core3ops8function6FnOnce9call_once*
+   fun:*symphonia_core5probe5Probe6format*
+   ...
+}
+{
+   symphonia_bad_static2
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   ...
+   fun:*hashbrown3map28HashMap*insert*
+   ...
+   fun:*symphonia7default10get_codecs*
+   fun:*core3ops8function6FnOnce9call_once*
+   ...
+}

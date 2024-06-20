@@ -1,6 +1,6 @@
 use crate::{
     encoder_decoder::{
-        encoders::mp3_encoder::mp3::Mp3Encoder, raw_audio_data::raw_audio_data::RawAudioData,
+        encoders::mp3::mp3::Mp3Encoder, raw_audio_data::raw_audio_data::RawAudioData,
     },
     messages::{
         dart_signal::{Mp3Config, TargetFormat},
