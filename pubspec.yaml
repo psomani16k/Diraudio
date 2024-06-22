@@ -37,8 +37,9 @@ dependencies:
   rinf: ^6.12.1
   protobuf: ^3.1.0
   file_picker: ^8.0.5
-  fluent_ui: ^4.8.7
   dynamic_color: ^1.7.0
+  window_manager: ^0.3.9
+  fluent_ui: ^4.8.7
 
 dev_dependencies:
   flutter_test:

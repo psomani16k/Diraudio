@@ -1,26 +1,22 @@
 import 'dart:io';
-import 'dart:ui';
 import 'package:audio_library_convertor/messages/dart_signal.pb.dart';
-import 'package:audio_library_convertor/messages/dart_signal.pbenum.dart';
 import 'package:audio_library_convertor/messages/dart_signal.pbserver.dart';
 import 'package:file_picker/file_picker.dart';
 
-class AppState {
-  Mp3Config _mp3config =
+class TranscoderState {
+  final Mp3Config _mp3config =
       Mp3Config(bitrate: Mp3Bitrate.Kbps320, quality: Mp3Quality.Best);
   int _noOfThreads = Platform.numberOfProcessors;
   bool _copyUnrecognisedFiles = true;
-  String _srcPath =
-      "C:\\Users\\Parth Somani\\Desktop\\GitHub\\Diraudio\\test_files";
-  String _destPath =
-      "C:\\Users\\Parth Somani\\Desktop\\GitHub\\Diraudio\\test_files_output";
+  String _srcPath = "";
+  String _destPath = "";
 
   // singleton class features
-  static final AppState _instance = AppState._();
-  AppState._();
+  static final TranscoderState _instance = TranscoderState._();
+  TranscoderState._();
 
-  /// Returns singleton instance of the [AppState] class
-  static AppState getInstance() {
+  /// Returns singleton instance of the [TranscoderState] class
+  static TranscoderState getInstance() {
     return _instance;
   }
 
@@ -81,7 +77,7 @@ class AppState {
   /// Does not allow empty or invalid paths
   /// Returns true if path is valid, false otherwise
   Future<bool> setDestination(String path) async {
-    if (!await Directory(_srcPath!).exists()) {
+    if (!await Directory(_srcPath).exists()) {
       return false;
     }
     _destPath = path;
@@ -120,11 +116,11 @@ class AppState {
   Future<bool> startConversion(TargetFormat targetFormat) async {
     if (_srcPath.isEmpty) {
       throw const FormatException("Source path not set.");
-    } else if (!await Directory(_srcPath!).exists()) {
+    } else if (!await Directory(_srcPath).exists()) {
       throw const FormatException("Source path is invalid.");
     } else if (_destPath.isEmpty) {
       throw const FormatException("Destination path not set.");
-    } else if (!await Directory(_destPath!).exists()) {
+    } else if (!await Directory(_destPath).exists()) {
       throw const FormatException("Destination path is invalid.");
     }
     Convert(
@@ -133,7 +129,7 @@ class AppState {
       srcPath: _srcPath,
       mp3Config: _mp3config,
       targetFormat: targetFormat,
-      noOfThreads: 16,
+      noOfThreads: _noOfThreads,
     ).sendSignalToRust();
     return true;
   }
