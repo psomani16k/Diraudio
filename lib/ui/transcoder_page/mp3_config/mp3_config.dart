@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 class Mp3ConfigUi extends StatefulWidget {
   const Mp3ConfigUi({super.key});
-  static const double height = 150;
+  static const double height = 190;
   @override
   State<Mp3ConfigUi> createState() => _Mp3ConfigUiState();
 }
@@ -20,8 +20,8 @@ class _Mp3ConfigUiState extends State<Mp3ConfigUi> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text("Mp3 Output Settings"),
-          SizedBox(height: 10),
+          const Text("Mp3 Output Settings"),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -30,7 +30,7 @@ class _Mp3ConfigUiState extends State<Mp3ConfigUi> {
                 decoration: BoxDecoration(
                     border: Border.all(
                       width: 2,
-                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
                     ),
                     borderRadius: BorderRadius.circular(16)),
                 width: 150,
@@ -65,7 +65,7 @@ class _Mp3ConfigUiState extends State<Mp3ConfigUi> {
                 decoration: BoxDecoration(
                     border: Border.all(
                       width: 2,
-                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
                     ),
                     borderRadius: BorderRadius.circular(16)),
                 width: 150,

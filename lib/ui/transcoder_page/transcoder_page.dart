@@ -232,8 +232,9 @@ class _TranscoderPageState extends State<TranscoderPage> {
               AnimatedContainer(
                 duration: Durations.medium3,
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(32),
-                    color: Theme.of(context).colorScheme.primaryContainer),
+                  borderRadius: BorderRadius.circular(32),
+                  color: Theme.of(context).colorScheme.tertiaryContainer,
+                ),
                 width: 450,
                 height: _audioConfigUiData[_targetFormat]?.height,
                 child: Padding(
