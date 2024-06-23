@@ -202,6 +202,7 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                     instruction.mp3_config.quality(),
                     instruction.mp3_config.bitrate(),
                 ),
+                TargetFormat::Opus => todo!(),
             };
             match encoded_audio {
                 Ok(output_audio) => {

@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:audio_library_convertor/messages/dart_signal.pb.dart';
+import 'package:audio_library_convertor/messages/dart_signal.pbenum.dart';
 import 'package:audio_library_convertor/messages/dart_signal.pbserver.dart';
 import 'package:file_picker/file_picker.dart';
 
 class TranscoderState {
-  final Mp3Config _mp3config =
+  Mp3Config _mp3config =
       Mp3Config(bitrate: Mp3Bitrate.Kbps320, quality: Mp3Quality.Best);
+  TargetFormat _targetFormat = TargetFormat.Mp3;
   int _noOfThreads = Platform.numberOfProcessors;
   bool _copyUnrecognisedFiles = true;
   String _srcPath = "";
@@ -22,12 +24,13 @@ class TranscoderState {
 
   // setters
   /// Set mp3 output bitrate and encoding quality
-  /// Does not allow setting the bitrate to [Mp3Bitrate.BITRATE_UNKNOWN_DO_NOT_USE]
-  void setMp3Config(Mp3Bitrate bitrate, Mp3Quality quality) {
-    if (bitrate == Mp3Bitrate.BITRATE_UNKNOWN_DO_NOT_USE) {
-      return;
-    }
+
+  void setMp3Bitrate(Mp3Bitrate bitrate) {
     _mp3config.bitrate = bitrate;
+  }
+
+  /// Set mp3 encoding quality
+  void setMp3Quality(Mp3Quality quality) {
     _mp3config.quality = quality;
   }
 
@@ -84,6 +87,11 @@ class TranscoderState {
     return true;
   }
 
+  /// Sets the targer format
+  void setTargetFormat(TargetFormat targetFormat) {
+    _targetFormat = targetFormat;
+  }
+
   // getters
   /// Returns the source path, null if it is not set
   String? getSrcPath() {
@@ -112,8 +120,13 @@ class TranscoderState {
     return _mp3config;
   }
 
+  /// Returns the currently selected target format
+  TargetFormat getTargetFormat() {
+    return _targetFormat;
+  }
+
   // methods
-  Future<bool> startConversion(TargetFormat targetFormat) async {
+  Future<bool> startConversion() async {
     if (_srcPath.isEmpty) {
       throw const FormatException("Source path not set.");
     } else if (!await Directory(_srcPath).exists()) {
@@ -128,7 +141,7 @@ class TranscoderState {
       destPath: _destPath,
       srcPath: _srcPath,
       mp3Config: _mp3config,
-      targetFormat: targetFormat,
+      targetFormat: _targetFormat,
       noOfThreads: _noOfThreads,
     ).sendSignalToRust();
     return true;

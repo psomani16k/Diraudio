@@ -45,43 +45,43 @@ enum Mp3Quality{
 }
 
 enum Mp3Bitrate {
-  BITRATE_UNKNOWN_DO_NOT_USE = 0;
+ 
   //8_000
-  Kbps8 = 8;
+  Kbps8 = 0;
   //16_000
-  Kbps16 = 16;
+  Kbps16 = 1;
   //24_000
-  Kbps24 = 24;
+  Kbps24 = 2;
   //32_000
-  Kbps32 = 32;
+  Kbps32 = 3;
   //40_000
-  Kbps40 = 40;
+  Kbps40 = 4;
   //48_000
-  Kbps48 = 48;
+  Kbps48 = 5;
   //64_000
-  Kbps64 = 64;
+  Kbps64 = 6;
   //80_000
-  Kbps80 = 80;
+  Kbps80 = 7;
   //96_000
-  Kbps96 = 96;
+  Kbps96 = 8;
   //112_000
-  Kbps112 = 112;
+  Kbps112 = 9;
   //128_000
-  Kbps128 = 128;
+  Kbps128 = 10;
   //160_000
-  Kbps160 = 160;
+  Kbps160 = 11;
   //192_000
-  Kbps192 = 192;
+  Kbps192 = 12;
   //224_000
-  Kbps224 = 224;
+  Kbps224 = 13;
   //256_000
-  Kbps256 = 256;
+  Kbps256 = 14;
   //320_000
-  Kbps320 = 320;
+  Kbps320 = 15;
 }
 
 // Target configurations
 enum TargetFormat{
   Mp3 = 0;
-  // opus = 1;
+  Opus = 1;
 }

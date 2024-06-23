@@ -227,7 +227,6 @@ fn get_correct_quality(quality: Mp3Quality) -> mp3lame_encoder::Quality {
 
 fn get_correct_bitrate(bitrate: Mp3Bitrate) -> mp3lame_encoder::Bitrate {
     match bitrate {
-        Mp3Bitrate::BitrateUnknownDoNotUse => mp3lame_encoder::Bitrate::Kbps320,
         Mp3Bitrate::Kbps8 => mp3lame_encoder::Bitrate::Kbps8,
         Mp3Bitrate::Kbps16 => mp3lame_encoder::Bitrate::Kbps16,
         Mp3Bitrate::Kbps24 => mp3lame_encoder::Bitrate::Kbps24,
