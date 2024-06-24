@@ -24,4 +24,26 @@ class DiraudioUiElements {
       ),
     );
   }
+
+  static diraudioFIlledButton(
+      BuildContext context, String text, double width, Function onTap) {
+    return InkWell(
+      onTap: () {
+        onTap();
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: 48,
+        width: width,
+        decoration: BoxDecoration(
+            boxShadow: const [
+              BoxShadow(
+                  color: Colors.black38, blurRadius: 10, offset: Offset(2, 2))
+            ],
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(20)),
+        child: Center(child: Text(text)),
+      ),
+    );
+  }
 }

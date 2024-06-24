@@ -30,7 +30,7 @@ class _MyAppState extends State<MyApp> {
           theme: ThemeData(colorScheme: lightDynamic),
           darkTheme: ThemeData(colorScheme: darkDynamic),
           debugShowCheckedModeBanner: false,
-          home: const ProgressUpdateProcessor(),
+          home: const HomePage(),
         );
       },
     );
