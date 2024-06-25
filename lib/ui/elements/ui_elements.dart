@@ -26,7 +26,7 @@ class DiraudioUiElements {
   }
 
   static diraudioFIlledButton(
-      BuildContext context, String text, double width, Function onTap) {
+      BuildContext context, Widget child, double width, Function onTap) {
     return InkWell(
       onTap: () {
         onTap();
@@ -42,7 +42,7 @@ class DiraudioUiElements {
             ],
             color: Theme.of(context).colorScheme.primaryContainer,
             borderRadius: BorderRadius.circular(20)),
-        child: Center(child: Text(text)),
+        child: Center(child: child),
       ),
     );
   }

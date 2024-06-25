@@ -4,7 +4,7 @@ use crate::{
     },
     messages::{
         dart_signal::{Mp3Config, TargetFormat},
-        rust_signal::{Finish, MessageType, ProgressUpdate, TotalNumberOfFilesFound},
+        rust_signal::{FinishThread, MessageType, ProgressUpdate, TotalNumberOfFilesFound},
     },
     AppState,
 };
@@ -33,6 +33,7 @@ pub(crate) async fn handle_conversion(
     let files = traverse_directory(&src_path, &mut files, src_path.len());
     TotalNumberOfFilesFound {
         number: files.len() as i32,
+        files_found: true,
     }
     .send_signal_to_dart();
     let files = Arc::new(Mutex::new(files));
@@ -112,7 +113,7 @@ async fn process_files_till_empty(
                 handle_file(&instruction, path, thread_no);
             }
             None => {
-                Finish {
+                FinishThread {
                     finished_thread: thread_no,
                 }
                 .send_signal_to_dart();
