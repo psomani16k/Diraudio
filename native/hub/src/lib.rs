@@ -22,7 +22,6 @@ rinf::write_interface!();
 
 enum AppState {
     Convert,
-    Converting,
     DoNothing,
 }
 
@@ -74,8 +73,4 @@ async fn dart_listen_start(app_state: Arc<Mutex<AppState>>) {
             debug_print!("Finished handle_conversion");
         });
     }
-}
-
-fn prin() {
-    debug_print!("jaskdf");
 }
