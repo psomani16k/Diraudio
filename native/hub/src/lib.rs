@@ -7,6 +7,7 @@ mod conversion_handler;
 mod encoder_decoder;
 use conversion_handler::{handle_conversion, ConversionInstructions};
 
+use messages::rust_signal::TotalNumberOfFilesFound;
 use rinf::debug_print;
 use std::sync::Arc;
 use tokio::{self, sync::Mutex};
@@ -29,6 +30,7 @@ async fn main() {
     let app_state = Arc::new(Mutex::new(AppState::DoNothing));
     tokio::spawn(dart_listen_start(Arc::clone(&app_state)));
     tokio::spawn(dart_listen_cancel(Arc::clone(&app_state)));
+    tokio::spawn(dart_listen_check_directory());
 }
 
 async fn dart_listen_cancel(app_state: Arc<Mutex<AppState>>) {
@@ -72,5 +74,21 @@ async fn dart_listen_start(app_state: Arc<Mutex<AppState>>) {
             handle_conversion(instruction, transfered_app_state).await;
             debug_print!("Finished handle_conversion");
         });
+    }
+}
+
+async fn dart_listen_check_directory() {
+    use crate::conversion_handler::traverse_directory;
+    use messages::dart_signal::*;
+    let mut reciever = CheckDirectory::get_dart_signal_receiver();
+    while let Some(check_dir) = reciever.recv().await {
+        let check_dir = check_dir.message.src;
+        let mut list_of_files: Vec<String> = Vec::new();
+        list_of_files = traverse_directory(&check_dir, &mut list_of_files, check_dir.len());
+        TotalNumberOfFilesFound {
+            files_found: true,
+            number: list_of_files.len() as i32,
+        }
+        .send_signal_to_dart();
     }
 }

@@ -12,7 +12,12 @@ message Convert {
 }
 // [RINF:DART-SIGNAL]
 message Cancel{
+  bool justData= 1;
+}
 
+// [RINF:DART-SIGNAL]
+message CheckDirectory{
+  string src = 1;
 }
 
 // Mp3 configurations

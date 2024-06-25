@@ -62,7 +62,7 @@ pub(crate) async fn handle_conversion(
     }
 }
 
-fn traverse_directory(
+pub fn traverse_directory(
     src: &String,
     list_of_files: &mut Vec<String>,
     src_path_length: usize,

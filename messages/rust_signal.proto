@@ -8,9 +8,8 @@ message TotalNumberOfFilesFound {
     bool filesFound = 2;
     
 }
-  
-  
-  // [RINF:RUST-SIGNAL]
+
+// [RINF:RUST-SIGNAL]
 message ProgressUpdate {
     string msg = 1;
     int32 handlingThread = 2;
