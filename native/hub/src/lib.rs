@@ -83,12 +83,24 @@ async fn dart_listen_check_directory() {
     let mut reciever = CheckDirectory::get_dart_signal_receiver();
     while let Some(check_dir) = reciever.recv().await {
         let check_dir = check_dir.message.src;
+        debug_print!("{}", check_dir);
         let mut list_of_files: Vec<String> = Vec::new();
-        list_of_files = traverse_directory(&check_dir, &mut list_of_files, check_dir.len());
-        TotalNumberOfFilesFound {
-            files_found: true,
-            number: list_of_files.len() as i32,
-        }
-        .send_signal_to_dart();
+        match traverse_directory(&check_dir, &mut list_of_files, check_dir.len()) {
+            Ok(list_of_files) => {
+                debug_print!("{}", list_of_files.len());
+                TotalNumberOfFilesFound {
+                    files_found: true,
+                    number: list_of_files.len() as i32,
+                }
+                .send_signal_to_dart();
+            }
+            Err(err) => {
+                TotalNumberOfFilesFound {
+                    files_found: false,
+                    number: 0,
+                }
+                .send_signal_to_dart();
+            }
+        };
     }
 }

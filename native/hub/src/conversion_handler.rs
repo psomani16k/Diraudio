@@ -30,7 +30,7 @@ pub(crate) async fn handle_conversion(
     // Get all the files in the source directory
     let mut files: Vec<String> = Vec::new();
     let src_path = conversion_details.src_path.clone();
-    let files = traverse_directory(&src_path, &mut files, src_path.len());
+    let files = traverse_directory(&src_path, &mut files, src_path.len()).unwrap();
     TotalNumberOfFilesFound {
         number: files.len() as i32,
         files_found: true,
@@ -66,17 +66,27 @@ pub fn traverse_directory(
     src: &String,
     list_of_files: &mut Vec<String>,
     src_path_length: usize,
-) -> Vec<String> {
-    let paths = fs::read_dir(src).unwrap();
+) -> Result<Vec<String>, String> {
+    let paths = match fs::read_dir(src) {
+        Ok(paths) => paths,
+        Err(err) => {
+            return Err(err.to_string());
+        }
+    };
     for path in paths {
         let entry = path.unwrap();
         let metadata = entry.metadata().unwrap();
         if metadata.is_dir() {
-            traverse_directory(
+            match traverse_directory(
                 &entry.path().to_str().unwrap().to_owned(),
                 list_of_files,
                 src_path_length,
-            );
+            ) {
+                Ok(_) => {}
+                Err(err) => {
+                    return Err(err);
+                }
+            };
         } else if metadata.is_file() {
             let path = entry.path();
             let path = path.to_str().unwrap().chars();
@@ -87,7 +97,7 @@ pub fn traverse_directory(
     // for i in list_of_files.clone() {
     //     println!("{}", i)
     // }
-    list_of_files.clone()
+    Ok(list_of_files.clone())
 }
 
 async fn process_files_till_empty(

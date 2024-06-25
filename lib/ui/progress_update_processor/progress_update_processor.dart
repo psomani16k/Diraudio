@@ -16,6 +16,56 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
   bool _sourceHasFiles = false;
   int _numberOfFilesFound = 0;
 
+  Widget _sourcePathStatusMessage(String message) {
+    Color errorOnContainerColor =
+        Theme.of(context).colorScheme.onErrorContainer;
+    HSLColor notErrorOnContainer = HSLColor.fromColor(errorOnContainerColor);
+    Color notErrorOnContainerColor = notErrorOnContainer
+        .withHue((notErrorOnContainer.hue + 120) % 360)
+        .toColor();
+
+    Color errorContainerColor = Theme.of(context).colorScheme.errorContainer;
+    HSLColor notErrorContainer = HSLColor.fromColor(errorContainerColor);
+    Color notErrorContainerColor = notErrorContainer
+        .withHue((notErrorContainer.hue + 120) % 360)
+        .toColor();
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        width: 310,
+        height: 40,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          color: _sourceHasFiles ? notErrorContainerColor : errorContainerColor,
+        ),
+        child: Row(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Icon(
+                _sourceHasFiles
+                    ? Icons.check_circle_outline
+                    : Icons.error_outline,
+                color: _sourceHasFiles
+                    ? notErrorOnContainerColor
+                    : errorOnContainerColor,
+                size: 18,
+              ),
+            ),
+            Text(
+              message,
+              style: TextStyle(
+                color: _sourceHasFiles
+                    ? notErrorOnContainerColor
+                    : errorOnContainerColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -53,7 +103,7 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
                   String messageToShow = _sourceHasFiles
                       ? "Found $_numberOfFilesFound files in source directory"
                       : "Please select a valid source directory";
-                  return Text(messageToShow);
+                  return _sourcePathStatusMessage(messageToShow);
                 },
               ),
               Padding(
