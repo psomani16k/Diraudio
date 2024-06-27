@@ -4,7 +4,7 @@ use crate::{
     },
     messages::{
         dart_signal::{Mp3Config, TargetFormat},
-        rust_signal::{FinishThread, MessageType, ProgressUpdate, TotalNumberOfFilesFound},
+        rust_signal::{MessageType, ProgressUpdate, TotalNumberOfFilesFound},
     },
     AppState,
 };
@@ -60,6 +60,13 @@ pub(crate) async fn handle_conversion(
             debug_print!("Error in thread: {:?}", e);
         }
     }
+
+    ProgressUpdate {
+        msg: "Conversion Finished".to_string(),
+        handling_thread: 0,
+        message_type: MessageType::ConversionFinish.into(),
+    }
+    .send_signal_to_dart();
 }
 
 pub fn traverse_directory(
@@ -123,8 +130,10 @@ async fn process_files_till_empty(
                 handle_file(&instruction, path, thread_no);
             }
             None => {
-                FinishThread {
-                    finished_thread: thread_no,
+                ProgressUpdate {
+                    msg: "No more files to convert".to_string(),
+                    handling_thread: thread_no,
+                    message_type: MessageType::FileFinish.into(),
                 }
                 .send_signal_to_dart();
                 return;

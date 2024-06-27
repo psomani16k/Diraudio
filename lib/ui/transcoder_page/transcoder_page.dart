@@ -61,7 +61,6 @@ class _TranscoderPageState extends State<TranscoderPage> {
                       onChanged: (value) {
                         TranscoderState.getInstance().setSource(value);
                         CheckDirectory(src: value).sendSignalToRust();
-                        print(value);
                       },
                     ),
                   ),
@@ -74,6 +73,8 @@ class _TranscoderPageState extends State<TranscoderPage> {
                           await TranscoderState.getInstance()
                                   .setSourcePathViaOS() ??
                               _srcPathController.text;
+                      CheckDirectory(src: _srcPathController.text)
+                          .sendSignalToRust();
                     },
                   ),
                 ],

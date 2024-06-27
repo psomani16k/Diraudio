@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class DiraudioUiElements {
   static diraudiTonalButton(
@@ -44,6 +45,48 @@ class DiraudioUiElements {
             borderRadius: BorderRadius.circular(20)),
         child: Center(child: child),
       ),
+    );
+  }
+
+  /// 0 < progress < 1
+  /// otherwise a modulo will be taken
+  static diraudioProgressIndicator(
+      BuildContext context, double progress, double width) {
+    width = width - 7;
+    if (progress > 1) {
+      progress = progress % 1;
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Container(
+          height: 4,
+          width: width * progress,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Container(
+            width: 3,
+            height: 12,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              color: Theme.of(context).colorScheme.primaryContainer,
+            ),
+          ),
+        ),
+        Container(
+          height: 4,
+          width: width * (1 - progress),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        )
+      ],
     );
   }
 }

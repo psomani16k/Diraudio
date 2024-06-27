@@ -1,3 +1,5 @@
+import 'package:audio_library_convertor/app_state.dart';
+import 'package:audio_library_convertor/messages/dart_signal.pb.dart';
 import 'package:audio_library_convertor/messages/rust_signal.pb.dart';
 import 'package:audio_library_convertor/ui/elements/ui_elements.dart';
 import 'package:audio_library_convertor/ui/progress_update_processor/update_processor_box/transcoder_conbined_update_processor.dart';
@@ -15,6 +17,7 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
   bool _showingUpdates = false;
   bool _sourceHasFiles = false;
   int _numberOfFilesFound = 0;
+  int _numberOfFilesFinished = 0;
 
   Widget _sourcePathStatusMessage(String message) {
     Color errorOnContainerColor =
@@ -92,19 +95,59 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              StreamBuilder(
-                stream: TotalNumberOfFilesFound.rustSignalStream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    var data = snapshot.data!.message;
-                    _numberOfFilesFound = data.number;
-                    _sourceHasFiles = data.filesFound;
-                  }
-                  String messageToShow = _sourceHasFiles
-                      ? "Found $_numberOfFilesFound files in source directory"
-                      : "Please select a valid source directory";
-                  return _sourcePathStatusMessage(messageToShow);
-                },
+              AnimatedCrossFade(
+                firstChild: StreamBuilder(
+                  stream: TotalNumberOfFilesFound.rustSignalStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      var data = snapshot.data!.message;
+                      _numberOfFilesFound = data.number;
+                      _sourceHasFiles = data.filesFound;
+                    }
+                    String messageToShow = _sourceHasFiles
+                        ? "Found $_numberOfFilesFound files in source directory"
+                        : "Please select a valid source directory";
+                    return _sourcePathStatusMessage(messageToShow);
+                  },
+                ),
+                secondChild: StreamBuilder(
+                  stream: ProgressUpdate.rustSignalStream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData &&
+                        snapshot.data!.message.messageType ==
+                            MessageType.FileFinish) {
+                      _numberOfFilesFinished++;
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(
+                              "$_numberOfFilesFinished/$_numberOfFilesFound",
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                          DiraudioUiElements.diraudioProgressIndicator(
+                            context,
+                            _numberOfFilesFound == 0
+                                ? 0
+                                : _numberOfFilesFinished / _numberOfFilesFound,
+                            MediaQuery.sizeOf(context).width - 152 - 32,
+                          )
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                crossFadeState: _showingUpdates
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                duration: Durations.short4,
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
@@ -119,11 +162,23 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
                     duration: Durations.medium3,
                   ),
                   120,
-                  () {
-                    //TranscoderState.getInstance().startConversion();
-                    setState(() {
-                      _showingUpdates = !_showingUpdates;
-                    });
+                  () async {
+                    bool res = false;
+                    if (_showingUpdates) {
+                      Cancel().sendSignalToRust();
+                    } else {
+                      try {
+                        res = await TranscoderState.getInstance()
+                            .startConversion();
+                      } catch (e) {
+                        print(e.toString());
+                      }
+                    }
+                    if (res && _sourceHasFiles && _numberOfFilesFound != 0) {
+                      setState(() {
+                        _showingUpdates = !_showingUpdates;
+                      });
+                    }
                   },
                 ),
               ),
@@ -143,7 +198,7 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
                 ? Theme.of(context).colorScheme.background
                 : Theme.of(context).colorScheme.secondaryContainer,
           ),
-          child: TranscoderCombinedUpdateProcessor(),
+          child: const TranscoderCombinedUpdateProcessor(),
         ),
       ],
     );

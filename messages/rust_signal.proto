@@ -19,20 +19,7 @@ message ProgressUpdate {
 enum MessageType{
     Success = 0;
     Fail = 1;
+    FileFinish = 2;
+    ConversionFinish = 3;
 }
-  
-// [RINF:RUST-SIGNAL]
-message FinishThread{
-    int32 finishedThread = 1;
-}
-
-
-// [RINF:RUST-SIGNAL]
-message Finish{
-    int32 threadCounts = 1;
-}
-
-
-
-  
   
