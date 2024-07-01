@@ -13,13 +13,24 @@ List<ProgressUpdate> _updateHistory = [];
 
 class _TranscoderCombinedUpdateProcessorState
     extends State<TranscoderCombinedUpdateProcessor> {
-  Text _processSingleProgressUpdate(ProgressUpdate progressUpdate) {
-    return Text(
-      "Thread ${progressUpdate.handlingThread}: ${progressUpdate.msg}",
-      style: TextStyle(
-        color: (progressUpdate.messageType == MessageType.Fail)
-            ? Theme.of(context).colorScheme.error
-            : Theme.of(context).colorScheme.onTertiaryContainer,
+  Widget _processSingleProgressUpdate(ProgressUpdate progressUpdate) {
+    return SizedBox(
+      width: MediaQuery.sizeOf(context).width,
+      child: Row(
+        children: [
+          Text("Thread ${progressUpdate.handlingThread}:"),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              progressUpdate.msg,
+              style: TextStyle(
+                color: (progressUpdate.messageType == MessageType.Fail)
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.onTertiaryContainer,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

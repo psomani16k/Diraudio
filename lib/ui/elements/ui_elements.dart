@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class DiraudioUiElements {
-  static diraudiTonalButton(
+  static Widget diraudiTonalButton(
       BuildContext context, String text, double width, Function onTap) {
     return InkWell(
       onTap: () {
@@ -26,7 +25,7 @@ class DiraudioUiElements {
     );
   }
 
-  static diraudioFIlledButton(
+  static Widget diraudioFIlledButton(
       BuildContext context, Widget child, double width, Function onTap) {
     return InkWell(
       onTap: () {
@@ -50,7 +49,7 @@ class DiraudioUiElements {
 
   /// 0 < progress < 1
   /// otherwise a modulo will be taken
-  static diraudioProgressIndicator(
+  static Widget diraudioProgressIndicator(
       BuildContext context, double progress, double width) {
     width = width - 7;
     if (progress > 1) {

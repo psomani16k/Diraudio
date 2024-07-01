@@ -17,7 +17,7 @@ message ProgressUpdate {
 }
 
 enum MessageType{
-    Success = 0;
+    Generic = 0;
     Fail = 1;
     FileFinish = 2;
     ConversionFinish = 3;

@@ -45,7 +45,13 @@ pub(crate) async fn handle_conversion(
         let app_state_clone = Arc::clone(&app_state);
 
         let handle = tokio::task::spawn_blocking(move || {
-            debug_print!("Spawning thread {}", i);
+            // debug_print!("Spawning thread {}", i);
+            // ProgressUpdate {
+            //     msg: "Spawning Thread".to_string(),
+            //     handling_thread: i,
+            //     message_type: MessageType::Generic.into(),
+            // }
+            // .send_signal_to_dart();
             tokio::runtime::Handle::current().block_on(async {
                 process_files_till_empty(conversion_details_clone, i, files_clone, app_state_clone)
                     .await
@@ -126,7 +132,6 @@ async fn process_files_till_empty(
         };
         match path_option {
             Some(path) => {
-                debug_print!("thread {} handling {}", thread_no, path);
                 handle_file(&instruction, path, thread_no);
             }
             None => {
@@ -156,6 +161,12 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                 instruction.dest_path,
                 file_path
             );
+            ProgressUpdate {
+                msg: format!("Copying {}", file_path),
+                handling_thread: thread,
+                message_type: MessageType::Generic.into(),
+            }
+            .send_signal_to_dart();
             let target_path = instruction.dest_path.clone() + &file_path;
 
             let directory_path = get_target_directory(instruction.dest_path.clone(), &file_path);
@@ -174,7 +185,7 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                             "Copied {} to {}{}",
                             file_path, instruction.dest_path, file_path
                         ),
-                        message_type: MessageType::Success.into(),
+                        message_type: MessageType::Generic.into(),
                     }
                     .send_signal_to_dart();
                 }
@@ -240,7 +251,7 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                     );
                     ProgressUpdate {
                         handling_thread: thread,
-                        message_type: MessageType::Success.into(),
+                        message_type: MessageType::Generic.into(),
                         msg: format!(
                             "Converted {} to {}",
                             file_path,
