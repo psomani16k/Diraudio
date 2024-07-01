@@ -6,8 +6,10 @@ use crate::{
         dart_signal::{Mp3Config, TargetFormat},
         rust_signal::{MessageType, ProgressUpdate, TotalNumberOfFilesFound},
     },
+    progress_report_buffer::{handle_buffer, ProgressBuffer},
     AppState,
 };
+
 use rinf::debug_print;
 use std::{fs, path::Path, sync::Arc, usize};
 use tokio::sync::Mutex;
@@ -38,23 +40,28 @@ pub(crate) async fn handle_conversion(
     .send_signal_to_dart();
     let files = Arc::new(Mutex::new(files));
 
+    let update_buffer = ProgressBuffer::new();
+    let update_buffer = Arc::new(Mutex::new(update_buffer));
+    let update_buffer_clone = Arc::clone(&update_buffer);
+    tokio::spawn(handle_buffer(update_buffer_clone));
+
     let mut handles = Vec::new();
+
     for i in 0..conversion_details.no_of_threads {
         let conversion_details_clone = conversion_details.clone();
         let files_clone = Arc::clone(&files);
         let app_state_clone = Arc::clone(&app_state);
-
+        let update_buffer_clone = Arc::clone(&update_buffer);
         let handle = tokio::task::spawn_blocking(move || {
-            // debug_print!("Spawning thread {}", i);
-            // ProgressUpdate {
-            //     msg: "Spawning Thread".to_string(),
-            //     handling_thread: i,
-            //     message_type: MessageType::Generic.into(),
-            // }
-            // .send_signal_to_dart();
             tokio::runtime::Handle::current().block_on(async {
-                process_files_till_empty(conversion_details_clone, i, files_clone, app_state_clone)
-                    .await
+                process_files_till_empty(
+                    conversion_details_clone,
+                    i + 1,
+                    files_clone,
+                    app_state_clone,
+                    update_buffer_clone,
+                )
+                .await
             });
         });
 
@@ -67,12 +74,12 @@ pub(crate) async fn handle_conversion(
         }
     }
 
-    ProgressUpdate {
+    let mut update_buffer_lock = update_buffer.lock().await;
+    update_buffer_lock.add(ProgressUpdate {
         msg: "Conversion Finished".to_string(),
         handling_thread: 0,
         message_type: MessageType::ConversionFinish.into(),
-    }
-    .send_signal_to_dart();
+    })
 }
 
 pub fn traverse_directory(
@@ -118,6 +125,7 @@ async fn process_files_till_empty(
     thread_no: i32,
     files: Arc<Mutex<Vec<String>>>,
     app_state: Arc<Mutex<AppState>>,
+    update_buffer: Arc<Mutex<ProgressBuffer>>,
 ) {
     loop {
         {
@@ -132,79 +140,76 @@ async fn process_files_till_empty(
         };
         match path_option {
             Some(path) => {
-                handle_file(&instruction, path, thread_no);
+                let update_buffer_clone = Arc::clone(&update_buffer);
+                handle_file(&instruction, path, thread_no, update_buffer_clone).await;
             }
             None => {
-                ProgressUpdate {
+                let mut buffer_lock = update_buffer.lock().await;
+                buffer_lock.add(ProgressUpdate {
                     msg: "No more files to convert".to_string(),
                     handling_thread: thread_no,
-                    message_type: MessageType::FileFinish.into(),
-                }
-                .send_signal_to_dart();
+                    message_type: MessageType::ThreadFinish.into(),
+                });
+
+                // ProgressUpdate {
+                //     msg: "No more files to convert".to_string(),
+                //     handling_thread: thread_no,
+                //     message_type: MessageType::ThreadFinish.into(),
+                // }
+                // .send_signal_to_dart();
                 return;
             }
         }
     }
 }
 
-fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: i32) {
+async fn handle_file(
+    instruction: &ConversionInstructions,
+    file_path: String,
+    thread: i32,
+    update_buffer: Arc<Mutex<ProgressBuffer>>,
+) {
     match decide_file_action(&file_path) {
         // If the file isn't of a supported audio format then it will be copied
         FileAction::Copy => {
             if !instruction.copy_unrecognised_files {
-                // debug_print!("thread {} did not copy file {}", thread, file_path);
                 return;
             }
-            debug_print!(
-                "Copying {} to {}{}",
-                file_path,
-                instruction.dest_path,
-                file_path
-            );
-            ProgressUpdate {
-                msg: format!("Copying {}", file_path),
-                handling_thread: thread,
-                message_type: MessageType::Generic.into(),
-            }
-            .send_signal_to_dart();
+
             let target_path = instruction.dest_path.clone() + &file_path;
 
             let directory_path = get_target_directory(instruction.dest_path.clone(), &file_path);
             fs::create_dir_all(directory_path).unwrap();
             match std::fs::copy(instruction.src_path.clone() + &file_path, target_path) {
                 Ok(_) => {
-                    debug_print!(
-                        "Copied {} to {}{}",
-                        file_path,
-                        instruction.dest_path,
-                        file_path
-                    );
-                    ProgressUpdate {
+                    // debug_print!("Copied {} to new destination", file_path,);
+                    let mut update_buffer_lock = update_buffer.lock().await;
+                    update_buffer_lock.add(ProgressUpdate {
                         handling_thread: thread,
                         msg: format!(
                             "Copied {} to {}{}",
                             file_path, instruction.dest_path, file_path
                         ),
-                        message_type: MessageType::Generic.into(),
-                    }
-                    .send_signal_to_dart();
+                        message_type: MessageType::FileFinish.into(),
+                    });
                 }
                 Err(_) => {
-                    debug_print!(
-                        "Failed to copy {} to {}{}",
-                        file_path,
-                        instruction.dest_path,
-                        file_path
-                    );
-                    ProgressUpdate {
+                    // debug_print!(
+                    //     "Failed to copy {} to {}{}",
+                    //     file_path,
+                    //     instruction.dest_path,
+                    //     file_path
+                    // );
+
+                    let mut update_buffer_lock = update_buffer.lock().await;
+                    update_buffer_lock.add(ProgressUpdate {
                         handling_thread: thread,
                         msg: format!(
                             "Failed to copy {} to {}{}",
                             file_path, instruction.dest_path, file_path
                         ),
                         message_type: MessageType::Fail.into(),
-                    }
-                    .send_signal_to_dart();
+                    });
                 }
             };
         }
@@ -213,18 +218,19 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
             let raw_audio = match RawAudioData::new_from_path(Path::new(&src_file_path)) {
                 Ok(data) => data,
                 Err(_) => {
-                    debug_print!(
-                        "Failed to decode file at {}. Skipping this file.",
-                        file_path
-                    );
-                    ProgressUpdate {
+                    // debug_print!(
+                    //     "Failed to decode file at {}. Skipping this file.",
+                    //     file_path
+                    // );
+                    let mut update_buffer_lock = update_buffer.lock().await;
+                    update_buffer_lock.add(ProgressUpdate {
                         handling_thread: thread,
                         message_type: MessageType::Fail.into(),
                         msg: format!(
                             "Failed to decode file at {}. Skipping this file.",
                             file_path
                         ),
-                    };
+                    });
                     return;
                 }
             };
@@ -244,36 +250,28 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
                         get_target_directory(instruction.dest_path.clone(), &file_path);
                     fs::create_dir_all(directory_path).unwrap();
                     fs::write(&write_path, output_audio).unwrap();
-                    debug_print!(
-                        "Converted {} to {}",
-                        file_path,
-                        write_path.as_path().to_string_lossy()
-                    );
-                    ProgressUpdate {
+
+                    let mut update_buffer_lock = update_buffer.lock().await;
+                    update_buffer_lock.add(ProgressUpdate {
                         handling_thread: thread,
-                        message_type: MessageType::Generic.into(),
-                        msg: format!(
-                            "Converted {} to {}",
-                            file_path,
-                            write_path.as_path().to_string_lossy()
-                        ),
-                    }
-                    .send_signal_to_dart();
+                        message_type: MessageType::FileFinish.into(),
+                        msg: format!("Converted {} to target format", file_path,),
+                    });
                 }
                 Err(_) => {
-                    debug_print!(
-                        "Failed to encode file at {}. Skipping this file.",
-                        file_path
-                    );
-                    ProgressUpdate {
+                    // debug_print!(
+                    //     "Failed to encode file at {}. Skipping this file.",
+                    //     file_path
+                    // );
+                    let mut update_buffer_lock = update_buffer.lock().await;
+                    update_buffer_lock.add(ProgressUpdate {
                         handling_thread: thread,
                         message_type: MessageType::Fail.into(),
                         msg: format!(
                             "Failed to encode file at {}. Skipping this file.",
                             file_path
                         ),
-                    }
-                    .send_signal_to_dart();
+                    });
                 }
             }
         }
@@ -281,7 +279,7 @@ fn handle_file(instruction: &ConversionInstructions, file_path: String, thread: 
 }
 
 fn decide_file_action(file_path: &String) -> FileAction {
-    if file_path.ends_with(".flac") {
+    if file_path.ends_with(".fc") {
         return FileAction::Convert;
     }
     FileAction::Copy

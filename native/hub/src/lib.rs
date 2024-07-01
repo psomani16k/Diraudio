@@ -5,6 +5,7 @@ mod messages;
 
 mod conversion_handler;
 mod encoder_decoder;
+pub mod progress_report_buffer;
 use conversion_handler::{handle_conversion, ConversionInstructions};
 
 use messages::rust_signal::TotalNumberOfFilesFound;
@@ -94,7 +95,7 @@ async fn dart_listen_check_directory() {
                 }
                 .send_signal_to_dart();
             }
-            Err(err) => {
+            Err(_) => {
                 TotalNumberOfFilesFound {
                     files_found: false,
                     number: 0,

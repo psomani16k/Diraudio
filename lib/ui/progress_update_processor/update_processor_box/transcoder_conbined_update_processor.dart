@@ -17,8 +17,11 @@ class _TranscoderCombinedUpdateProcessorState
     return SizedBox(
       width: MediaQuery.sizeOf(context).width,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Thread ${progressUpdate.handlingThread}:"),
+          SizedBox(
+              width: 70,
+              child: Text("Thread ${progressUpdate.handlingThread}:")),
           const SizedBox(width: 10),
           Flexible(
             child: Text(
@@ -50,7 +53,7 @@ class _TranscoderCombinedUpdateProcessorState
           stream: ProgressUpdate.rustSignalStream,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              _updateHistory.add(snapshot.data!.message);
+              _updateHistory.insert(0, snapshot.data!.message);
             }
             return SingleChildScrollView(
               child: Column(
