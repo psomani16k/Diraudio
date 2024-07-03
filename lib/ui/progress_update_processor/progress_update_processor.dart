@@ -18,6 +18,7 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
   bool _sourceHasFiles = false;
   int _numberOfFilesFound = 0;
   int _numberOfFilesFinished = 0;
+  bool _conversionFinished = false;
 
   Widget _sourcePathStatusMessage(String message) {
     Color errorOnContainerColor =
@@ -117,6 +118,12 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
                         snapshot.data!.message.messageType ==
                             MessageType.FileFinish) {
                       _numberOfFilesFinished++;
+                    } else if (snapshot.hasData &&
+                        snapshot.data!.message.messageType ==
+                            MessageType.ConversionFinish) {
+                      setState(() {
+                        _conversionFinished = true;
+                      });
                     }
                     return Padding(
                       padding: const EdgeInsets.only(left: 16),
@@ -151,36 +158,49 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
               ),
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: DiraudioUiElements.diraudioFIlledButton(
-                  context,
-                  AnimatedCrossFade(
-                    firstChild: const Text("Convert"),
-                    secondChild: const Text("Cancel"),
-                    crossFadeState: _showingUpdates
-                        ? CrossFadeState.showSecond
-                        : CrossFadeState.showFirst,
-                    duration: Durations.medium3,
-                  ),
-                  120,
-                  () async {
-                    bool res = false;
-                    if (_showingUpdates) {
-                      Cancel().sendSignalToRust();
-                    } else {
-                      try {
-                        res = await TranscoderState.getInstance()
-                            .startConversion();
-                      } catch (e) {
-                        print(e.toString());
-                      }
-                    }
-                    if (res && _sourceHasFiles && _numberOfFilesFound != 0) {
-                      setState(() {
-                        _showingUpdates = !_showingUpdates;
-                      });
-                    }
-                  },
-                ),
+                child: _conversionFinished
+                    ? DiraudioUiElements.diraudiTonalButton(
+                        context, "Back", 120, () {
+                        setState(() {
+                          bool _showingUpdates = false;
+                          bool _sourceHasFiles = false;
+                          int _numberOfFilesFound = 0;
+                          int _numberOfFilesFinished = 0;
+                          bool _conversionFinished = false;
+                        });
+                      })
+                    : DiraudioUiElements.diraudioFIlledButton(
+                        context,
+                        AnimatedCrossFade(
+                          firstChild: const Text("Convert"),
+                          secondChild: const Text("Cancel"),
+                          crossFadeState: _showingUpdates
+                              ? CrossFadeState.showSecond
+                              : CrossFadeState.showFirst,
+                          duration: Durations.medium3,
+                        ),
+                        120,
+                        () async {
+                          bool res = false;
+                          if (_showingUpdates) {
+                            Cancel().sendSignalToRust();
+                          } else {
+                            try {
+                              res = await TranscoderState.getInstance()
+                                  .startConversion();
+                            } catch (e) {
+                              print(e.toString());
+                            }
+                          }
+                          if (res &&
+                              _sourceHasFiles &&
+                              _numberOfFilesFound != 0) {
+                            setState(() {
+                              _showingUpdates = !_showingUpdates;
+                            });
+                          }
+                        },
+                      ),
               ),
             ],
           ),

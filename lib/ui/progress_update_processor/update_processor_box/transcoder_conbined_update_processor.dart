@@ -49,19 +49,24 @@ class _TranscoderCombinedUpdateProcessorState
           color: Theme.of(context).colorScheme.tertiaryContainer,
           borderRadius: BorderRadius.circular(30),
         ),
-        child: StreamBuilder(
-          stream: ProgressUpdate.rustSignalStream,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              _updateHistory.insert(0, snapshot.data!.message);
-            }
-            return SingleChildScrollView(
-              child: Column(
-                  children: _updateHistory.map((e) {
-                return _processSingleProgressUpdate(e);
-              }).toList()),
-            );
-          },
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: StreamBuilder(
+            stream: ProgressUpdate.rustSignalStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData &&
+                  snapshot.data!.message.messageType !=
+                      MessageType.ConversionFinish) {
+                _updateHistory.insert(0, snapshot.data!.message);
+              }
+              return SingleChildScrollView(
+                child: Column(
+                    children: _updateHistory.map((e) {
+                  return _processSingleProgressUpdate(e);
+                }).toList()),
+              );
+            },
+          ),
         ),
       ),
     );

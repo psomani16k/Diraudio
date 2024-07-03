@@ -40,8 +40,8 @@ async fn dart_listen_cancel(app_state: Arc<Mutex<AppState>>) {
     while let Some(_dart_signal) = reciever.recv().await {
         let mut state = app_state.lock().await;
         *state = AppState::DoNothing;
+        debug_print!("Requested Cancel");
     }
-    debug_print!("returning start");
 }
 
 async fn dart_listen_start(app_state: Arc<Mutex<AppState>>) {

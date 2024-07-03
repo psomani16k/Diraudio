@@ -1,6 +1,5 @@
 use std::{collections::VecDeque, sync::Arc, time::Duration};
 
-use rinf::debug_print;
 use tokio::{sync::Mutex, time::sleep};
 
 use crate::messages::rust_signal::{MessageType, ProgressUpdate};

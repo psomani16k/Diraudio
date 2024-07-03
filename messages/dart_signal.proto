@@ -88,5 +88,5 @@ enum Mp3Bitrate {
 // Target configurations
 enum TargetFormat{
   Mp3 = 0;
-  Opus = 1;
+  // Opus = 1;
 }

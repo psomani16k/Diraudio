@@ -194,13 +194,6 @@ async fn handle_file(
                     });
                 }
                 Err(_) => {
-                    // debug_print!(
-                    //     "Failed to copy {} to {}{}",
-                    //     file_path,
-                    //     instruction.dest_path,
-                    //     file_path
-                    // );
-
                     let mut update_buffer_lock = update_buffer.lock().await;
                     update_buffer_lock.add(ProgressUpdate {
                         handling_thread: thread,
@@ -239,7 +232,7 @@ async fn handle_file(
                     instruction.mp3_config.quality(),
                     instruction.mp3_config.bitrate(),
                 ),
-                TargetFormat::Opus => todo!(),
+                // TargetFormat::Opus => todo!(),
             };
             match encoded_audio {
                 Ok(output_audio) => {
@@ -279,7 +272,7 @@ async fn handle_file(
 }
 
 fn decide_file_action(file_path: &String) -> FileAction {
-    if file_path.ends_with(".fc") {
+    if file_path.ends_with(".flac") {
         return FileAction::Convert;
     }
     FileAction::Copy

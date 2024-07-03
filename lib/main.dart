@@ -1,7 +1,6 @@
 import 'package:audio_library_convertor/ui/home_page/home_page.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:window_manager/window_manager.dart';
-
 import './messages/generated.dart';
 import 'package:flutter/material.dart';
 
