@@ -1,5 +1,6 @@
 import 'package:audio_lib/ui/home_page/home_page.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:window_manager/window_manager.dart';
 import './messages/generated.dart';
 import 'package:flutter/material.dart';
@@ -26,10 +27,12 @@ class _MyAppState extends State<MyApp> {
       builder: (lightDynamic, darkDynamic) {
         return MaterialApp(
           theme: ThemeData(
+            fontFamily: GoogleFonts.openSans().fontFamily,
             colorScheme: lightDynamic,
-            // textTheme: Typography.blackMountainView,
           ),
-          darkTheme: ThemeData(colorScheme: darkDynamic),
+          darkTheme: ThemeData(
+              fontFamily: GoogleFonts.openSans().fontFamily,
+              colorScheme: darkDynamic),
           themeMode: ThemeMode.system,
           debugShowCheckedModeBanner: false,
           home: const HomePage(),

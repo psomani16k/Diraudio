@@ -2,7 +2,7 @@ import 'package:audio_lib/app_state.dart';
 import 'package:audio_lib/messages/dart_signal.pb.dart';
 import 'package:audio_lib/messages/rust_signal.pb.dart';
 import 'package:audio_lib/ui/elements/ui_elements.dart';
-import 'package:audio_lib/ui/file_transcoding/progress_update_processor/transcoder_update_processor.dart';
+import 'package:audio_lib/ui/file_transcoding/progress_update_processor/update_box.dart';
 import 'package:flutter/material.dart';
 
 class ProgressUpdateProcessor extends StatefulWidget {
@@ -36,7 +36,7 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Container(
-        width: 360,
+        width: 300,
         height: 40,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),

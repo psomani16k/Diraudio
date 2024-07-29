@@ -1,4 +1,4 @@
-import 'package:audio_lib/ui/file_transcoding/progress_update_processor/progress_update_processor.dart';
+import 'package:audio_lib/ui/file_transcoding/progress_update_processor/progress_update_screen.dart';
 import 'package:audio_lib/ui/file_transcoding/transcoder_page/transcoder_page.dart';
 import 'package:flutter/material.dart';
 
