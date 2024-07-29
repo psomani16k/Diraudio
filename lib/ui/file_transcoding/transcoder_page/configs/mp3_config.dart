@@ -1,10 +1,10 @@
-import 'package:audio_library_convertor/app_state.dart';
-import 'package:audio_library_convertor/messages/dart_signal.pb.dart';
+import 'package:audio_lib/app_state.dart';
+import 'package:audio_lib/messages/dart_signal.pb.dart';
 import 'package:flutter/material.dart';
 
 class Mp3ConfigUi extends StatefulWidget {
   const Mp3ConfigUi({super.key});
-  static const double height = 190;
+  static const double height = 195;
   @override
   State<Mp3ConfigUi> createState() => _Mp3ConfigUiState();
 }
@@ -39,7 +39,7 @@ class _Mp3ConfigUiState extends State<Mp3ConfigUi> {
                     isExpanded: true,
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     underline: const SizedBox(),
-                    focusColor: Theme.of(context).colorScheme.background,
+                    focusColor: Theme.of(context).colorScheme.surface,
                     items: Mp3Quality.values.map((e) {
                       return DropdownMenuItem(value: e, child: Text(e.name));
                     }).toList(),
@@ -74,7 +74,7 @@ class _Mp3ConfigUiState extends State<Mp3ConfigUi> {
                     isExpanded: true,
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     underline: const SizedBox(),
-                    focusColor: Theme.of(context).colorScheme.background,
+                    focusColor: Theme.of(context).colorScheme.surface,
                     items: Mp3Bitrate.values.map((e) {
                       return DropdownMenuItem(value: e, child: Text(e.name));
                     }).toList(),

@@ -1,11 +1,10 @@
 import 'dart:io';
-import 'package:audio_library_convertor/messages/dart_signal.pb.dart';
-import 'package:audio_library_convertor/messages/dart_signal.pbenum.dart';
-import 'package:audio_library_convertor/messages/dart_signal.pbserver.dart';
+import 'package:audio_lib/messages/dart_signal.pb.dart';
+import 'package:audio_lib/messages/dart_signal.pbserver.dart';
 import 'package:file_picker/file_picker.dart';
 
 class TranscoderState {
-  Mp3Config _mp3config =
+  final Mp3Config _mp3config =
       Mp3Config(bitrate: Mp3Bitrate.Kbps320, quality: Mp3Quality.Best);
   TargetFormat _targetFormat = TargetFormat.Mp3;
   int _noOfThreads = Platform.numberOfProcessors;

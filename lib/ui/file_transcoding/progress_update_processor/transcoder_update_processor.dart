@@ -1,4 +1,4 @@
-import 'package:audio_library_convertor/messages/rust_signal.pb.dart';
+import 'package:audio_lib/messages/rust_signal.pb.dart';
 import 'package:flutter/material.dart';
 
 class TranscoderCombinedUpdateProcessor extends StatefulWidget {

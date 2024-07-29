@@ -1,4 +1,4 @@
-import 'package:audio_library_convertor/ui/home_page/home_page.dart';
+import 'package:audio_lib/ui/home_page/home_page.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:window_manager/window_manager.dart';
 import './messages/generated.dart';
@@ -8,8 +8,7 @@ void main() async {
   // set initial state of the app here
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
-  windowManager.setMinimumSize(const Size(500, 600));
-  WindowManager.instance.setMinimumSize(const Size(500, 500));
+  windowManager.setMinimumSize(const Size(700, 700));
   await initializeRust();
   runApp(const MyApp());
 }
@@ -26,7 +25,10 @@ class _MyAppState extends State<MyApp> {
     return DynamicColorBuilder(
       builder: (lightDynamic, darkDynamic) {
         return MaterialApp(
-          theme: ThemeData(colorScheme: lightDynamic),
+          theme: ThemeData(
+            colorScheme: lightDynamic,
+            // textTheme: Typography.blackMountainView,
+          ),
           darkTheme: ThemeData(colorScheme: darkDynamic),
           themeMode: ThemeMode.system,
           debugShowCheckedModeBanner: false,

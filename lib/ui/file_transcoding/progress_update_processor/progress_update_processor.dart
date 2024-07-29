@@ -1,8 +1,8 @@
-import 'package:audio_library_convertor/app_state.dart';
-import 'package:audio_library_convertor/messages/dart_signal.pb.dart';
-import 'package:audio_library_convertor/messages/rust_signal.pb.dart';
-import 'package:audio_library_convertor/ui/elements/ui_elements.dart';
-import 'package:audio_library_convertor/ui/progress_update_processor/update_processor_box/transcoder_conbined_update_processor.dart';
+import 'package:audio_lib/app_state.dart';
+import 'package:audio_lib/messages/dart_signal.pb.dart';
+import 'package:audio_lib/messages/rust_signal.pb.dart';
+import 'package:audio_lib/ui/elements/ui_elements.dart';
+import 'package:audio_lib/ui/file_transcoding/progress_update_processor/transcoder_update_processor.dart';
 import 'package:flutter/material.dart';
 
 class ProgressUpdateProcessor extends StatefulWidget {
@@ -36,7 +36,7 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Container(
-        width: 310,
+        width: 360,
         height: 40,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
@@ -80,7 +80,7 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
           curve: Easing.emphasizedDecelerate,
           decoration: BoxDecoration(
             color: _showingUpdates
-                ? Theme.of(context).colorScheme.background
+                ? Theme.of(context).colorScheme.surface
                 : Theme.of(context).colorScheme.secondaryContainer,
             borderRadius: BorderRadius.only(
               topLeft: _showingUpdates
@@ -162,11 +162,11 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
                     ? DiraudioUiElements.diraudiTonalButton(
                         context, "Back", 120, () {
                         setState(() {
-                          bool _showingUpdates = false;
-                          bool _sourceHasFiles = false;
-                          int _numberOfFilesFound = 0;
-                          int _numberOfFilesFinished = 0;
-                          bool _conversionFinished = false;
+                          bool showingUpdates = false;
+                          bool sourceHasFiles = false;
+                          int numberOfFilesFound = 0;
+                          int numberOfFilesFinished = 0;
+                          bool conversionFinished = false;
                         });
                       })
                     : DiraudioUiElements.diraudioFIlledButton(
@@ -215,7 +215,7 @@ class _ProgressUpdateProcessorState extends State<ProgressUpdateProcessor> {
               : 0,
           decoration: BoxDecoration(
             color: _showingUpdates
-                ? Theme.of(context).colorScheme.background
+                ? Theme.of(context).colorScheme.surface
                 : Theme.of(context).colorScheme.secondaryContainer,
           ),
           child: const TranscoderCombinedUpdateProcessor(),

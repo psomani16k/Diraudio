@@ -1,5 +1,5 @@
-import 'package:audio_library_convertor/ui/progress_update_processor/progress_update_processor.dart';
-import 'package:audio_library_convertor/ui/transcoder_page/transcoder_page.dart';
+import 'package:audio_lib/ui/file_transcoding/file_transcoding.dart';
+
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -14,18 +14,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Diraudio"),
-      ),
-      body: Stack(
-        children: [
-          TranscoderPage(),
-          SizedBox(
-              height: MediaQuery.sizeOf(context).height,
-              width: MediaQuery.sizeOf(context).width,
-              child: ProgressUpdateProcessor()),
-        ],
-      ),
-    );
+        appBar: AppBar(
+          title: const Text("Diraudio"),
+        ),
+        body: const FileTranscoding());
   }
 }
